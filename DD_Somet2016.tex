@@ -1,0 +1,287 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%% author.tex %%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% sample root file for your contribution to an IFIP volume
+% published at Springer
+%
+% Use this file as a template for your own input.
+%
+%%%%%%%%%%%%%%%%%%%%%%%% Springer-Verlag %%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+% RECOMMENDED %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\documentclass[ifip]{svmult}
+
+% choose options for [] as required from the list
+% in the Reference Guide, Sect. 2.2
+\usepackage{epsfig} 
+\usepackage{makeidx}         % allows index generation
+\usepackage{graphicx}        % standard LaTeX graphics tool
+                             % when including figure files
+\usepackage{multicol}        % used for the two-column index
+\usepackage[bottom]{footmisc}% places footnotes at page bottom
+% etc.
+% see the list of further useful packages
+% in the Reference Guide, Sects. 2.3, 3.1-3.3
+
+\makeindex             % used for the subject index
+                       % please use the style sprmidx.sty with
+                       % your makeindex program
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+
+\title*{Towards traceability between issues and reports for code review time analysis.}
+% Use \titlerunning{Short Title} for an abbreviated version of
+% your contribution title if the original one is too long
+\author{Dorealda Dalipaj\inst{1}}
+% Use \authorrunning{Short Title} for an abbreviated version of
+% your contribution title if the original one is too long
+\institute{Universidad Rey Juan Carlos, Madrid.
+\texttt{dorealda.dalipaj@urjc.es}
+}
+%
+% Use the package "url.sty" to avoid
+% problems with special characters
+% used in your e-mail or web address
+%
+\maketitle
+
+\textbf{\textit{Abstract --}} Researchers working with software repositories, 
+often when building performance or quality models, need to recover traceability links between bug reports 
+in issue tracking repositories and reviews in code review systems. 
+\\
+However, too often the information stored in bug tracking repositories is not
+explicitly tagged or linked to the issues reviewing them. Researchers have to
+resort to heuristics to tag the data (e.g., to identify if an issue is a bug report or a work item), 
+or to link a piece of code to a particular issue or bug.
+\\
+Recent studies argue that software models based on imperfect datasets, with missing
+links to the code and incorrect tagging of issues, display biases
+that compromise the validity and generality of the models built on top of the datasets. 
+This risk enhances furthermore the importance of the task of recovering 
+traceability links between reports and issues. 
+\\
+In this study we propose two different automatic approaches on how to link report and issue 
+for an open source cloud computing project that enforces 
+strict development guidelines and rules on the quality of the 
+data in its issue tracking repository. We empirically compare the outcome of the two 
+approaches and use the most prominent one to quantitatively analyse two important metrics of performance 
+of code review in software maintenance: time to identify bug reports and time to carry out the review process.
+\\
+\\
+\textit{\textbf{Keywords:} traceability, code review, open source software, quantitative analysis.}
+
+
+\section{Introduction}
+\label{sec:1}
+% Always give a unique label
+% and use \ref{<label>} for cross-references
+% and \cite{<label>} for bibliographic references
+% use \sectionmark{}
+% to alter or adjust the section heading in the running head
+Software process data, especially bug reports and code changes, are widely used in software engineering research. The
+integration of reports and reviews, on one hand, provides valuable information on the history and evolution of a software project 
+\cite{con0}. 
+On the other hand, it provide the means for conducting studies that qualitatively and quantitatively analyse fundamental parameters 
+for characterization of quality and performance of the code review and the most important metrics having a positive increasing 
+relation with the benefits of this process.
+
+It is used, e.g., to build models which study the impact of characteristics of issue and review discussions on the 
+defect-proneness of a patch \cite{con1}, to spot defect-introducing code changes during review, to predict the number and locale 
+of bugs in future software releases, or to investigate technical and non-technical 
+factors influencing modern code review ( \cite{con2, con3, con4, con5, con6}).
+
+However, to achieve such studies, 
+much of the information stored in software repositories
+must be processed and cleaned for further analysis. Such 
+processing and cleaning is often done using assumptions 
+and heuristics. A generally accepted assumption is that most issue
+tracking systems contain just bug reports. Actually, 
+they contain other items such as approved design specifications for 
+additions and changes to the project team’s code repositories or 
+lightweight feature specifications.
+
+The quality of these assumptions and heuristics represents a threat to 
+the validity of results derived from software 
+repositories. Recent studies, by Bird et al. \cite{con7} and Antoniol et al. 
+\cite{con8}, have casted doubts on the quality of data produced
+using such heuristics. 
+Bird et al. \cite{con7} note that when considering links between bug reports and actual 
+code, there exists bias in the severity level of bugs and the experience of
+developers fixing bugs, thus a quality model built using only the linked 
+bugs, will be biased towards the behaviour of more experienced developers.
+Antoniol et al. \cite{con8} note that many of the issues in an issue tracking system do 
+not actually represent bug reports, therefore, using such data might lead to 
+incorrect bug counts for the different parts of a software system.
+
+To prevent or minimize such situations, we would require a perfect dataset where such linkages 
+and tagging of issues was done by professional developers and with great attention to detail. 
+While such a perfect dataset might not exist, we believe that a near-ideal dataset does exist. 
+This dataset is derived from the OpenStack project. The OpenStack project follows a disciplined 
+software development process with careful attention to continuously maintaining the linkages 
+between issues and code changes through automated tool support. The strong discipline and the 
+automated tool support gives us strong confidence that this project represents a near-ideal 
+case of high quality linkage dataset that is correctly tagged.
+
+Furthermore we used this dataset to quantitatively analyse the responsiveness of code review in 
+measuring the amount of time that developers spend to individuate bugs and in how much they spend 
+for fixing an issue.
+\\
+\\
+Summarizing, this paper provides the following two contributions:
+\begin{itemize}
+ \item[$\bullet$] we present two fully automated approaches for linking issues from 
+ bugtracking system to reviews from code review system of Open Stack,
+ \item[$\bullet$] we then use the dataset obtained to quantitatively analyse two of the 
+ most fundamental metrics of the responsiveness for the code review process of Open Stack. 
+\end{itemize}
+
+In the remainder of this paper, we first describe the necessary background notions for our work (section 3). Next, we describe the 
+case study setup (section 4), then present the results (section 5). After threats to 
+validity and future work (section 6 and section 7), we discuss some conclusions (section 8).
+
+\section{Background}
+\label{sec:2}
+
+This section provides background information about previous research areas that motivated this study, 
+environments that we focus on and tools for obtaining data from their repositories. 
+\\
+Areas closely related to this research include data extraction and integration, data quality 
+in software engineering, 
+data verification in software repositories, and data quality effects on empirical software 
+engineering.
+\\
+Software engineering process data such as bug reports and
+version control log files are widely used in empirical software
+engineering. Therefore, the extraction and integration of this data is critical.
+Fischer et al. \cite{con0} presented a Release History Database which contains 
+the version control log and the bug report information. To link the change log and 
+the bug tracking database, Fischer et al. searched for change log messages which 
+match to a given regular expression. Later, they improved the linking algorithm and 
+built in a file-module verification \cite{con9}. A similar approach to link the 
+change log with the bug tracking database was chosen by other researchers. All of 
+them used regular expressions to find bug report link candidates in the change log 
+file (e.g., \cite{con10, con6, con11, con12, con13}).
+\\
+Liebchen and Shepperd \cite{con14} surveyed hundreds of empirical software engineering 
+papers to assess how studies manage data quality issues. They found only 23 that 
+explicitly referenced data quality. Four of the 23 suggested that data quality 
+might impact analysis, but made no suggestion of how to deal with it. They conclude that 
+there is very little work to assess the quality of data sets and point to the extreme 
+challenge of knowing the \textit{true} values and populations. They suggest that 
+simulation-based approaches might help.
+\\
+Bettenburg et al. \cite{con15, con16, con17} provided first analysis of bug report quality. 
+They investigated the attributes of a good bug report surveying developers and used it to 
+develop a computational model of a bug report quality. The resulting model allowed to 
+display the current quality of a defect report whilst typing.
+\\
+Hooimeijer et al. \cite{con18} also analyzed the quality of defect reports and tried to 
+predict whether the defect report will be closed within a given amount of time.
+Chen et al. \cite{con19} studied the change logs of three Open Source projects and analyzed 
+the quality of these log files. 
+\\
+Bachmann et al. \cite{con20} surveyed five Open Source and one Closed Source project 
+in order to provide a deeper insight into the quality and characteristics of these 
+often-used process data. Specifically, they defined quality and characteristics measures, 
+computed them and discussed the issues that arose from these observations. 
+They showed that there are vast diferences between the projects, particularly with respect 
+to the quality of the link rate between bugs and commits.
+\\
+Aranda et al. \cite{con21} provided a field study of coordination activities around bug fixing, 
+based on a survey of software professionals at Microsoft. Specifically, they studied 10 bugs in 
+detail and showed that: (i) electronic repositories often hold incomplete or incorrect data, 
+and (ii) the histories of even simple bugs are strongly dependent on social, organizational, and 
+technical knowledge that cannot be solely extracted through the automated analysis of software
+repositories. They report that software repositories show an incomplete picture of the social 
+processes in a project.
+\\
+Our approach uses a reverse engineered model of the code review process of Open Stack, and extracts 
+key information from the issue-tracking and code review systems. 
+
+%\subsection{Subsection Heading}
+%\label{sec:2}
+%Your text goes here.
+
+%\begin{equation}
+%\vec{a}\times\vec{b}=\vec{c}
+%\end{equation}
+
+%\subsubsection{Subsubsection Heading}
+%Your text goes here. Use the \LaTeX\ automatism for cross-references as
+%well as for your citations, see Sect.~\ref{sec:1}.
+
+%\paragraph{Paragraph Heading} 
+% Your text goes here.
+
+%\subparagraph{Subparagraph Heading.} Your text goes here.%
+%
+%\index{paragraph}
+% Use the \index{} command to code your index words
+%
+% For tables use
+%
+%\begin{table}
+%\centering
+%\caption{Please write your table caption here}
+%\label{tab:1}       % Give a unique label
+%
+% For LaTeX tables use
+%
+%\begin{tabular}{lll}
+%\hline\noalign{\smallskip}
+%first & second & third  \\
+%\noalign{\smallskip}\hline\noalign{\smallskip}
+%number & number & number \\
+%number & number & number \\
+%\noalign{\smallskip}\hline
+%\end{tabular}
+%\end{table}
+%
+%
+% For figures use
+%
+%\begin{figure}
+%\centering
+% Use the relevant command for your figure-insertion program
+% to insert the figure file.
+% For example, with the option graphicx use
+%\includegraphics[height=4cm]{figure.eps}
+%
+%\caption{Please write your figure caption here}
+%\label{fig:1}       % Give a unique label
+%\end{figure}
+%
+% For built-in environments use
+%
+%\begin{theorem}
+%Theorem text\footnote{Footnote} goes here.
+%\end{theorem}
+%
+% or
+%
+%\begin{lemma}
+%Lemma text goes here.
+%\end{lemma}
+%
+%
+% BibTeX users please use
+% \bibliographystyle{}
+% \bibliography{}
+%
+% Non-BibTeX users please follow the syntax
+% the syntax of "referenc.tex" for your own citations
+\input{referenc}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\printindex
+\end{document}
+
+
+
+
+
